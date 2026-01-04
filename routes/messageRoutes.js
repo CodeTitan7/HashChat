@@ -41,7 +41,7 @@ router.get("/users/search", verifyToken, async (req, res) => {
     console.error("Error searching users:", err);
     res.status(500).send("Search failed");
   }
-};
+});
 
 router.get("/user/username/:username", verifyToken, async (req, res) => {
   try {
