@@ -1,13 +1,12 @@
-// models/User.js - WITH UNIQUE USERNAME
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
   username: { 
     type: String, 
     required: true,
-    unique: true,  // Make username unique
+    unique: true,  
     trim: true,
-    lowercase: true  // Store in lowercase for easier searching
+    lowercase: true
   },
   email: { 
     type: String, 
