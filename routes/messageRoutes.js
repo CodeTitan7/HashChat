@@ -1,4 +1,3 @@
-// routes/messageRoutes.js - UPDATED WITH USERNAME SUPPORT
 import express from "express";
 import Message from "../models/Message.js";
 import User from "../models/User.js";
@@ -6,7 +5,6 @@ import jwt from "jsonwebtoken";
 
 const router = express.Router();
 
-// Middleware to verify token
 const verifyToken = (req, res, next) => {
   const token = req.headers.authorization?.split(" ")[1];
   
@@ -23,19 +21,17 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-// Search users by username (for autocomplete/search)
 router.get("/users/search", verifyToken, async (req, res) => {
   try {
-    const { q } = req.query;  // query parameter: ?q=john
+    const { q } = req.query;
     
     if (!q || q.trim().length < 2) {
       return res.json([]);
     }
 
-    // Search for users whose username starts with or contains the query
     const users = await User.find({
       username: { $regex: q.toLowerCase(), $options: "i" },
-      _id: { $ne: req.userId }  // Exclude the current user
+      _id: { $ne: req.userId }
     })
     .select("username email _id")
     .limit(10);
@@ -45,9 +41,8 @@ router.get("/users/search", verifyToken, async (req, res) => {
     console.error("Error searching users:", err);
     res.status(500).send("Search failed");
   }
-});
+};
 
-// Get user by username
 router.get("/user/username/:username", verifyToken, async (req, res) => {
   try {
     const { username } = req.params;
@@ -71,7 +66,6 @@ router.get("/user/username/:username", verifyToken, async (req, res) => {
   }
 });
 
-// Get user by ID (keep for backward compatibility)
 router.get("/user/:userId", verifyToken, async (req, res) => {
   try {
     const { userId } = req.params;
@@ -93,17 +87,14 @@ router.get("/user/:userId", verifyToken, async (req, res) => {
   }
 });
 
-// Get chat history between current user and another user (by their user ID)
 router.get("/messages/:userId/:otherUserId", verifyToken, async (req, res) => {
   try {
     const { userId, otherUserId } = req.params;
 
-    // Verify the requesting user is one of the participants
     if (req.userId !== userId) {
       return res.status(403).send("Unauthorized");
     }
 
-    // Get messages where user is either sender or receiver
     const messages = await Message.find({
       $or: [
         { sender: userId, receiver: otherUserId },
