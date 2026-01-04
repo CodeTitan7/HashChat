@@ -1,4 +1,3 @@
-// routes/authRoutes.js - UPDATED WITH USERNAME VALIDATION
 import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -6,12 +5,10 @@ import User from "../models/User.js";
 
 const router = express.Router();
 
-/* REGISTER */
 router.post("/register", async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
-    // Validate input
     if (!username || !email || !password) {
       return res.status(400).send("All fields are required");
     }
@@ -20,34 +17,31 @@ router.post("/register", async (req, res) => {
       return res.status(400).send("Username must be at least 3 characters");
     }
 
-    // Check if username already exists (case-insensitive)
     const usernameExists = await User.findOne({ 
       username: username.toLowerCase() 
     });
+
     if (usernameExists) {
       return res.status(400).send("Username already taken");
     }
 
-    // Check if email already exists
     const emailExists = await User.findOne({ email: email.toLowerCase() });
+
     if (emailExists) {
       return res.status(400).send("Email already registered");
     }
 
     const hashed = await bcrypt.hash(password, 10);
-
     const user = await User.create({
       username: username.toLowerCase().trim(),
       email: email.toLowerCase().trim(),
       password: hashed
     });
 
-    console.log("✅ User registered:", user.username);
     res.status(201).send("Registered successfully");
   } catch (err) {
-    console.error("❌ Registration error:", err);
+    console.error("Registration error:", err);
     
-    // Handle MongoDB duplicate key errors
     if (err.code === 11000) {
       const field = Object.keys(err.keyPattern)[0];
       return res.status(400).send(`${field} already exists`);
@@ -57,7 +51,6 @@ router.post("/register", async (req, res) => {
   }
 });
 
-/* LOGIN */
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -75,10 +68,8 @@ router.post("/login", async (req, res) => {
     const token = jwt.sign(
       { id: user._id },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }  // 7 days instead of 1 day
+      { expiresIn: "7d" }
     );
-
-    console.log("✅ User logged in:", user.username);
 
     res.json({
       token,
@@ -89,7 +80,7 @@ router.post("/login", async (req, res) => {
       }
     });
   } catch (err) {
-    console.error("❌ Login error:", err);
+    console.error("Login error:", err);
     res.status(500).send("Login failed");
   }
 });
