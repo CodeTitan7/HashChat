@@ -1,4 +1,3 @@
-// models/Message.js - FIXED VERSION
 import mongoose from "mongoose";
 
 const messageSchema = new mongoose.Schema({
